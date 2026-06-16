@@ -1,0 +1,1170 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IIB · Monitor de Correos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --gold: #F5C000;
+    --gold-dark: #D4A800;
+    --gold-light: #FFFBEB;
+    --gold-glow: rgba(245,192,0,0.12);
+    --ink: #0A0A0B;
+    --ink-2: #1C1C1E;
+    --ink-3: #2C2C2E;
+    --surface: #F5F5F7;
+    --surface-2: #FFFFFF;
+    --border: #E5E5EA;
+    --border-2: #C7C7CC;
+    --text-primary: #1C1C1E;
+    --text-secondary: #6E6E73;
+    --text-tertiary: #AEAEB2;
+    --green: #34C759;
+    --green-bg: #F0FBF4;
+    --green-text: #1A6B34;
+    --red: #FF3B30;
+    --red-bg: #FFF2F1;
+    --red-text: #C0251C;
+    --blue: #007AFF;
+    --blue-bg: #F0F6FF;
+    --blue-text: #0055CC;
+    --amber-bg: #FFFAEB;
+    --amber-text: #7A5700;
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --radius-xl: 20px;
+    --shadow-xs: 0 1px 2px rgba(0,0,0,0.05);
+    --shadow-sm: 0 1px 4px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+    --shadow-md: 0 4px 16px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.04);
+    --shadow-lg: 0 16px 48px rgba(0,0,0,0.14), 0 4px 12px rgba(0,0,0,0.06);
+    --shadow-gold: 0 0 0 3px rgba(245,192,0,0.2);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--surface);
+    min-height: 100vh;
+    color: var(--text-primary);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* ════════════════════════════════
+     LOGIN
+  ════════════════════════════════ */
+  #login-overlay {
+    position: fixed; inset: 0;
+    background: var(--ink);
+    z-index: 9999;
+    display: flex; align-items: center; justify-content: center;
+    background-image:
+      radial-gradient(ellipse 60% 40% at 70% 10%, rgba(245,192,0,0.07) 0%, transparent 100%),
+      radial-gradient(ellipse 40% 50% at 10% 90%, rgba(245,192,0,0.04) 0%, transparent 100%);
+  }
+
+  .login-wrap { width: 100%; max-width: 400px; padding: 24px; }
+
+  .login-card {
+    background: #111112;
+    border: 1px solid #2A2A2E;
+    border-radius: var(--radius-xl);
+    padding: 44px 40px;
+    box-shadow: var(--shadow-lg), 0 0 80px rgba(245,192,0,0.04);
+  }
+
+  .login-brand {
+    display: flex; align-items: center; gap: 12px;
+    margin-bottom: 36px;
+  }
+
+  .login-logo {
+    width: 42px; height: 42px;
+    background: var(--gold);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 14px; color: var(--ink);
+    letter-spacing: -0.3px; flex-shrink: 0;
+  }
+
+  .login-brand-name { font-size: 14px; font-weight: 600; color: #FFF; line-height: 1.3; }
+  .login-brand-sub { font-size: 11px; color: #555; font-weight: 400; letter-spacing: 0.4px; margin-top: 1px; }
+
+  .login-heading { font-size: 26px; font-weight: 700; color: #FFF; margin-bottom: 8px; letter-spacing: -0.5px; }
+  .login-desc { font-size: 14px; color: #666; margin-bottom: 32px; line-height: 1.5; }
+
+  .login-field-label { font-size: 12px; font-weight: 500; color: #555; display: block; margin-bottom: 8px; letter-spacing: 0.2px; }
+
+  #inputCodigo {
+    width: 100%; padding: 13px 16px;
+    background: #1A1A1E; border: 1.5px solid #333;
+    border-radius: var(--radius-sm); color: #FFF;
+    font-size: 15px; font-family: inherit; outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    letter-spacing: 1px; margin-bottom: 8px;
+  }
+  #inputCodigo:focus { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(245,192,0,0.12); }
+  #inputCodigo::placeholder { color: #444; letter-spacing: 0; }
+
+  #errorLogin {
+    font-size: 13px; color: #FF453A; display: none;
+    margin-bottom: 10px; padding: 10px 12px;
+    background: rgba(255,69,58,0.08); border-radius: var(--radius-sm);
+    border: 1px solid rgba(255,69,58,0.15);
+  }
+
+  .btn-login {
+    width: 100%; padding: 13px;
+    background: var(--gold); color: var(--ink);
+    border: none; border-radius: var(--radius-sm);
+    font-size: 14px; font-weight: 700; cursor: pointer;
+    font-family: inherit; transition: background 0.15s, transform 0.1s;
+  }
+  .btn-login:hover { background: var(--gold-dark); }
+  .btn-login:active { transform: scale(0.99); }
+
+  .login-footer { text-align: center; margin-top: 28px; font-size: 11px; color: #333; }
+
+  /* ════════════════════════════════
+     HEADER
+  ════════════════════════════════ */
+  .header {
+    background: var(--ink-2);
+    padding: 0 24px; height: 54px;
+    display: flex; align-items: center; gap: 12px;
+    position: sticky; top: 0; z-index: 100;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    box-shadow: 0 1px 0 rgba(255,255,255,0.03);
+  }
+
+  .logo-box {
+    width: 30px; height: 30px; background: var(--gold);
+    border-radius: 7px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 11px; color: var(--ink);
+    letter-spacing: -0.2px; flex-shrink: 0;
+  }
+
+  .logo-txt { font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.88); line-height: 1.2; }
+  .logo-sub { font-size: 10px; color: rgba(255,255,255,0.28); letter-spacing: 0.8px; text-transform: uppercase; }
+
+  .header-right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+
+  .status-pill {
+    display: flex; align-items: center; gap: 5px;
+    padding: 4px 10px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 20px;
+  }
+
+  .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); animation: pulse-green 2s infinite; flex-shrink: 0; }
+  .dot.red { background: var(--red); animation: none; box-shadow: none; }
+
+  @keyframes pulse-green {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(52,199,89,0.4); }
+    50% { box-shadow: 0 0 0 4px rgba(52,199,89,0); }
+  }
+
+  .status-lbl { font-size: 11px; color: rgba(255,255,255,0.4); font-weight: 500; }
+
+  .nivel-pill {
+    display: none; align-items: center; gap: 5px;
+    padding: 4px 10px;
+    background: rgba(245,192,0,0.08);
+    border: 1px solid rgba(245,192,0,0.18);
+    border-radius: 20px;
+  }
+  #nivelLbl { font-size: 11px; color: var(--gold); font-weight: 600; }
+
+  /* ════════════════════════════════
+     LAYOUT
+  ════════════════════════════════ */
+  .container { max-width: 960px; margin: 0 auto; padding: 24px 20px 64px; }
+
+  /* ════════════════════════════════
+     CARD
+  ════════════════════════════════ */
+  .card {
+    background: var(--surface-2);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 16px;
+    overflow: hidden;
+  }
+
+  .card-inner { padding: 20px; }
+  .card-inner + .card-inner { border-top: 1px solid var(--border); }
+
+  .section-label {
+    font-size: 10px; font-weight: 600;
+    color: var(--text-tertiary); letter-spacing: 1px;
+    text-transform: uppercase; margin-bottom: 12px;
+    display: flex; align-items: center; gap: 6px;
+  }
+
+  /* ════════════════════════════════
+     CHIPS (clientes)
+  ════════════════════════════════ */
+  .chip {
+    display: flex; align-items: center; gap: 12px;
+    padding: 11px 14px;
+    border: 1.5px solid var(--gold);
+    border-radius: var(--radius-md);
+    cursor: pointer; background: var(--gold-light);
+    margin-bottom: 8px;
+    transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
+    user-select: none;
+  }
+  .chip:last-child { margin-bottom: 0; }
+  .chip:hover { background: #FFF3C4; box-shadow: 0 2px 8px var(--gold-glow); }
+  .chip.unselected { border-color: var(--border); background: var(--surface); }
+  .chip.unselected:hover { border-color: var(--border-2); background: #FAFAFA; }
+
+  .chip-av {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: var(--gold); color: var(--ink);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700; flex-shrink: 0;
+    transition: background 0.15s;
+  }
+  .chip.unselected .chip-av { background: var(--border); color: var(--text-tertiary); }
+
+  .chip-nm { font-size: 13px; font-weight: 600; color: var(--text-primary); }
+  .chip-em { font-size: 11px; color: var(--text-secondary); margin-top: 2px; }
+
+  .chip-check {
+    margin-left: auto; width: 20px; height: 20px; border-radius: 50%;
+    background: var(--gold); color: var(--ink);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700; flex-shrink: 0;
+    transition: all 0.15s;
+  }
+  .chip.unselected .chip-check { background: var(--border); color: var(--text-tertiary); }
+
+  /* ════════════════════════════════
+     FILTERS
+  ════════════════════════════════ */
+  .filters { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; }
+
+  .fg { display: flex; flex-direction: column; gap: 5px; flex: 1; min-width: 110px; }
+  .fg label { font-size: 11px; color: var(--text-secondary); font-weight: 500; }
+
+  .fg select, .fg input[type="date"] {
+    padding: 8px 28px 8px 11px; font-size: 12px;
+    border: 1.5px solid var(--border); border-radius: var(--radius-sm);
+    background: var(--surface); color: var(--text-primary);
+    font-family: inherit; outline: none; height: 36px;
+    transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+    -webkit-appearance: none; appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' fill='none'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23AEAEB2' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 10px center;
+  }
+
+  .fg input[type="date"] {
+    background-image: none; padding-right: 11px;
+    -webkit-appearance: none; appearance: none;
+  }
+
+  .fg select:focus, .fg input:focus {
+    border-color: var(--gold); box-shadow: var(--shadow-gold);
+    background-color: var(--surface-2);
+  }
+
+  .btn-buscar {
+    padding: 0 18px; background: var(--gold); color: var(--ink);
+    border: none; border-radius: var(--radius-sm);
+    font-size: 12px; font-weight: 700; font-family: inherit;
+    cursor: pointer; white-space: nowrap; flex-shrink: 0;
+    transition: background 0.15s, transform 0.1s;
+    display: flex; align-items: center; gap: 6px; height: 36px;
+  }
+  .btn-buscar:hover { background: var(--gold-dark); }
+  .btn-buscar:active { transform: scale(0.98); }
+  .btn-buscar:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+
+  /* ════════════════════════════════
+     STATS
+  ════════════════════════════════ */
+  .stats {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 10px; margin-bottom: 16px;
+  }
+
+  .stat {
+    background: var(--surface-2); border-radius: var(--radius-md);
+    padding: 16px 14px; text-align: center;
+    border: 1px solid var(--border);
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .stat:hover { border-color: var(--border-2); box-shadow: var(--shadow-xs); }
+
+  .stat-n { font-size: 28px; font-weight: 700; color: var(--text-primary); line-height: 1; letter-spacing: -1px; }
+  .stat-l { font-size: 10px; color: var(--text-tertiary); margin-top: 5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.6px; }
+
+  /* ════════════════════════════════
+     RESULTS HEADER
+  ════════════════════════════════ */
+  .rh {
+    display: flex; justify-content: space-between;
+    align-items: center; margin-bottom: 10px;
+  }
+  .rh-txt { font-size: 12px; color: var(--text-secondary); font-weight: 500; }
+
+  .btn-dl-all {
+    padding: 7px 14px; background: var(--gold); color: var(--ink);
+    border: none; border-radius: var(--radius-sm);
+    font-size: 12px; font-weight: 700; font-family: inherit;
+    cursor: pointer; display: flex; align-items: center; gap: 6px;
+    white-space: nowrap; transition: background 0.15s, transform 0.1s;
+  }
+  .btn-dl-all:hover { background: var(--gold-dark); }
+  .btn-dl-all:active { transform: scale(0.98); }
+
+  /* ════════════════════════════════
+     MAIL CARDS
+  ════════════════════════════════ */
+  .mcard {
+    background: var(--surface-2); border: 1px solid var(--border);
+    border-radius: var(--radius-md); margin-bottom: 8px; overflow: hidden;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .mcard:hover { border-color: rgba(245,192,0,0.5); box-shadow: 0 2px 12px var(--gold-glow); }
+
+  .mhead {
+    padding: 14px 16px; cursor: pointer;
+    display: flex; align-items: flex-start; gap: 10px;
+  }
+
+  .msubj { font-size: 13px; font-weight: 600; color: var(--text-primary); margin-bottom: 6px; line-height: 1.35; }
+  .mrow { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+  .mdate { font-size: 11px; color: var(--text-tertiary); font-weight: 400; }
+
+  .badge { font-size: 10px; padding: 2px 8px; border-radius: 20px; font-weight: 600; white-space: nowrap; }
+  .bnew { background: var(--green-bg); color: var(--green-text); border: 1px solid rgba(52,199,89,0.18); }
+  .brep { background: var(--blue-bg); color: var(--blue-text); border: 1px solid rgba(0,122,255,0.18); }
+  .badj { background: var(--gold-light); color: var(--amber-text); border: 1px solid rgba(245,192,0,0.25); }
+  .bnoread { background: var(--red-bg); color: var(--red-text); border: 1px solid rgba(255,59,48,0.18); }
+
+  .chevron {
+    color: var(--text-tertiary); margin-left: auto; flex-shrink: 0;
+    transition: transform 0.2s; display: flex; align-items: center;
+    padding-top: 1px;
+  }
+  .chevron.open { transform: rotate(180deg); }
+
+  .mbody {
+    border-top: 1px solid var(--border);
+    padding: 14px 16px;
+    background: var(--surface);
+  }
+
+  /* ════════════════════════════════
+     STATES
+  ════════════════════════════════ */
+  .empty { text-align: center; padding: 60px 20px; }
+  .empty-icon { font-size: 36px; margin-bottom: 12px; opacity: 0.4; }
+  .empty p { font-size: 13px; color: var(--text-secondary); }
+
+  .loading { text-align: center; padding: 52px 20px; }
+  .spinner {
+    width: 30px; height: 30px;
+    border: 2.5px solid var(--border); border-top-color: var(--gold);
+    border-radius: 50%; animation: spin 0.7s linear infinite;
+    margin: 0 auto 14px;
+  }
+  .loading-txt { font-size: 13px; color: var(--text-secondary); }
+  .loading-sub { font-size: 11px; color: var(--text-tertiary); margin-top: 5px; }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .error-box {
+    background: var(--red-bg); border: 1px solid rgba(255,59,48,0.15);
+    border-radius: var(--radius-md); padding: 16px 18px;
+    font-size: 13px; color: var(--red-text); line-height: 1.65;
+  }
+
+  /* ════════════════════════════════
+     FOOTER
+  ════════════════════════════════ */
+  .footer {
+    text-align: center; padding: 24px 20px;
+    font-size: 11px; color: var(--text-tertiary); letter-spacing: 0.3px;
+  }
+
+  /* ════════════════════════════════
+     MODAL
+  ════════════════════════════════ */
+  .modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.45);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    z-index: 1000; display: flex;
+    align-items: center; justify-content: center;
+    animation: mfade 0.18s ease;
+  }
+  @keyframes mfade { from { opacity:0 } to { opacity:1 } }
+
+  .modal-container {
+    background: var(--surface-2); border-radius: var(--radius-xl);
+    width: 100%; max-width: 580px; max-height: 82vh;
+    display: flex; flex-direction: column;
+    box-shadow: var(--shadow-lg);
+    margin: 20px; overflow: hidden;
+    border: 1px solid var(--border);
+    animation: mslide 0.2s ease;
+  }
+  @keyframes mslide { from { transform: translateY(8px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+  .modal-header {
+    background: var(--ink-2); padding: 18px 48px 18px 20px;
+    flex-shrink: 0; position: relative;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+  .modal-title { color: #FFF; font-size: 15px; font-weight: 700; margin-bottom: 3px; }
+  .modal-subtitle { color: rgba(255,255,255,0.35); font-size: 12px; }
+  .modal-close {
+    position: absolute; top: 14px; right: 14px;
+    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 6px; color: rgba(255,255,255,0.5);
+    font-size: 15px; cursor: pointer; padding: 5px 9px;
+    transition: all 0.15s; line-height: 1;
+  }
+  .modal-close:hover { background: rgba(255,255,255,0.12); color: #FFF; }
+
+  .modal-body { overflow-y: auto; flex: 1; }
+
+  .modal-row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 20px; border-bottom: 1px solid var(--border);
+    cursor: pointer; transition: background 0.1s;
+  }
+  .modal-row:hover { background: var(--surface); }
+  .modal-row:last-child { border-bottom: none; }
+  .modal-row-all { background: var(--surface); border-bottom: 2px solid var(--border) !important; }
+  .modal-row-all:hover { background: #EFEFEF; }
+
+  .modal-checkbox { width: 16px; height: 16px; accent-color: var(--gold); cursor: pointer; flex-shrink: 0; }
+
+  .modal-footer {
+    border-top: 1px solid var(--border); padding: 14px 20px;
+    display: flex; justify-content: space-between; align-items: flex-start;
+    flex-shrink: 0; gap: 10px; flex-wrap: wrap; background: var(--surface);
+  }
+  .modal-counter { font-size: 13px; color: var(--text-tertiary); padding-top: 6px; white-space: nowrap; }
+  .modal-counter.active { color: var(--text-primary); font-weight: 600; }
+  .modal-actions { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+  .modal-btns { display: flex; gap: 8px; }
+
+  .btn-modal-primary {
+    padding: 8px 20px; background: var(--gold); color: var(--ink);
+    border: none; border-radius: var(--radius-sm);
+    font-size: 13px; font-weight: 700; font-family: inherit;
+    cursor: pointer; transition: background 0.15s; white-space: nowrap;
+  }
+  .btn-modal-primary:hover:not(:disabled) { background: var(--gold-dark); }
+  .btn-modal-primary:disabled { opacity: 0.3; cursor: not-allowed; }
+
+  .btn-modal-secondary {
+    padding: 8px 16px; background: var(--surface-2); color: var(--text-secondary);
+    border: 1.5px solid var(--border); border-radius: var(--radius-sm);
+    font-size: 13px; font-weight: 500; font-family: inherit;
+    cursor: pointer; transition: all 0.15s; white-space: nowrap;
+  }
+  .btn-modal-secondary:hover:not(:disabled) { border-color: var(--border-2); color: var(--text-primary); }
+  .btn-modal-secondary:disabled { opacity: 0.45; cursor: not-allowed; }
+
+  .progress-bar {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius-sm); padding: 8px 12px;
+    font-size: 12px; color: var(--text-secondary); width: 100%;
+    transition: background 0.3s, color 0.3s;
+  }
+
+  /* ════════════════════════════════
+     RESPONSIVE
+  ════════════════════════════════ */
+  @media (max-width: 640px) {
+    .header { padding: 0 14px; }
+    .container { padding: 16px 12px 48px; }
+    .card-inner { padding: 16px; }
+    .fg { min-width: calc(50% - 5px); }
+    .btn-buscar { width: 100%; justify-content: center; }
+    .stats { gap: 8px; }
+    .stat-n { font-size: 24px; }
+    .login-card { padding: 32px 24px; }
+  }
+
+  /* ════════════════════════════════
+     RESPONSIVE MÓVIL ≤ 768px
+  ════════════════════════════════ */
+  @media (max-width: 768px) {
+    /* ─── Login ─── */
+    .login-wrap { padding: 16px; }
+    .login-card { padding: 32px 24px; }
+    .login-heading { font-size: 22px; }
+    .login-desc { font-size: 13px; margin-bottom: 24px; }
+
+    /* ─── Header ─── */
+    .header { padding: 0 14px; padding-top: env(safe-area-inset-top); gap: 10px; }
+    .logo-sub { display: none; }
+    .status-lbl { display: none; }
+    #nivelLbl { font-size: 13px; }
+
+    /* ─── Container ─── */
+    .container { padding: 12px 12px 100px; }
+
+    /* ─── Cards ─── */
+    .card-inner { padding: 14px; }
+
+    /* ─── Chips ─── */
+    .chip { padding: 10px 12px; gap: 10px; }
+    .chip-av { width: 32px; height: 32px; font-size: 11px; }
+    .chip-nm { font-size: 13px; }
+    .chip-em { font-size: 11px; }
+    .chip-check { width: 18px; height: 18px; font-size: 10px; }
+
+    /* ─── Filtros: grid 2×2, botón full width, font mínimo 16px para evitar zoom iOS ─── */
+    .filters { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .btn-buscar { grid-column: 1 / -1; width: 100%; justify-content: center; height: 44px; font-size: 14px; }
+    .fg select, .fg input[type="date"] { font-size: 16px; height: 42px; }
+
+    /* ─── Stats ─── */
+    .stat { padding: 12px 8px; }
+    .stat-n { font-size: 22px; letter-spacing: -0.5px; }
+    .stat-l { font-size: 9px; }
+
+    /* ─── Tarjetas correo ─── */
+    .mhead { padding: 12px 14px; gap: 8px; }
+    .msubj { font-size: 13px; margin-bottom: 5px; }
+    .mdate { font-size: 10px; }
+    .badge { font-size: 9px; padding: 2px 6px; }
+    .mbody { padding: 12px 14px; }
+
+    /* ─── FAB (botón flotante de descarga) ─── */
+    .btn-flotante-descarga {
+      position: fixed;
+      bottom: calc(20px + env(safe-area-inset-bottom));
+      right: 20px;
+      background: var(--gold);
+      color: var(--ink);
+      border: none;
+      border-radius: 28px;
+      padding: 14px 20px;
+      font-size: 15px;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      box-shadow: 0 4px 20px rgba(245,192,0,0.4), var(--shadow-lg);
+      z-index: 500;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: transform 0.15s, box-shadow 0.15s;
+      white-space: nowrap;
+    }
+    .btn-flotante-descarga:active {
+      transform: scale(0.96);
+      box-shadow: 0 2px 10px rgba(245,192,0,0.3);
+    }
+
+    /* ─── Modal bottom sheet (sube desde abajo) ─── */
+    .modal-overlay { align-items: flex-end; }
+    .modal-container {
+      margin: 0;
+      max-height: 88vh;
+      border-radius: 20px 20px 0 0;
+      animation: mslide-up 0.25s ease;
+    }
+    @keyframes mslide-up {
+      from { transform: translateY(100%); opacity: 0.8; }
+      to   { transform: translateY(0);    opacity: 1;   }
+    }
+    .modal-header { padding: 16px 48px 16px 16px; }
+    .modal-row    { padding: 13px 16px; }
+    .modal-footer { padding: 12px 16px; }
+
+    /* ─── Touch feedback ─── */
+    .chip:active  { transform: scale(0.98); }
+    .mcard:hover  { border-color: var(--border); box-shadow: none; }
+    .mcard:active { border-color: rgba(245,192,0,0.5); }
+
+    html { scroll-behavior: smooth; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ── LOGIN ── -->
+<div id="login-overlay">
+  <div class="login-wrap">
+    <div class="login-card">
+      <div class="login-brand">
+        <div class="login-logo">IIB</div>
+        <div>
+          <div class="login-brand-name">IIB Consultoría Empresarial</div>
+          <div class="login-brand-sub">Monitor de correos Gmail</div>
+        </div>
+      </div>
+      <div class="login-heading">Bienvenido</div>
+      <div class="login-desc">Ingresa tu código de acceso para continuar.</div>
+      <label class="login-field-label" for="inputCodigo">Código de acceso</label>
+      <input type="password" id="inputCodigo" placeholder="••••••••••"
+        onkeydown="if(event.key==='Enter') validarLogin()">
+      <div id="errorLogin">Código incorrecto. Intenta de nuevo.</div>
+      <button class="btn-login" onclick="validarLogin()">Ingresar</button>
+      <div class="login-footer">© 2026 IIB Consultoría Empresarial</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── HEADER ── -->
+<div class="header">
+  <div class="logo-box">IIB</div>
+  <div>
+    <div class="logo-txt">IIB Consultoría Empresarial</div>
+    <div class="logo-sub">Monitor de correos Gmail</div>
+  </div>
+  <div class="header-right">
+    <div class="status-pill">
+      <div class="dot" id="statusDot"></div>
+      <span class="status-lbl" id="statusLbl">Verificando...</span>
+    </div>
+    <div class="nivel-pill" id="nivelPill">
+      <span id="nivelLbl"></span>
+    </div>
+  </div>
+</div>
+
+<!-- ── MAIN ── -->
+<div class="container">
+
+  <div class="card">
+    <!-- Clientes -->
+    <div class="card-inner">
+      <div class="section-label">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        Cliente
+      </div>
+      <div id="chips-container"></div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="card-inner">
+      <div class="section-label">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+        Filtros
+      </div>
+      <div class="filters">
+        <div class="fg">
+          <label>Dirección</label>
+          <select id="fdireccion">
+            <option value="recibidos">Recibidos</option>
+            <option value="enviados">Enviados</option>
+            <option value="todos">Todos</option>
+          </select>
+        </div>
+        <div class="fg">
+          <label>Tipo</label>
+          <select id="ftipo">
+            <option value="all">Todos</option>
+            <option value="new">Solo nuevos</option>
+            <option value="reply">Solo respuestas</option>
+            <option value="attach">Con adjuntos</option>
+          </select>
+        </div>
+        <div class="fg">
+          <label>Desde</label>
+          <input type="date" id="fdesde">
+        </div>
+        <div class="fg">
+          <label>Hasta</label>
+          <input type="date" id="fhasta">
+        </div>
+        <div class="fg">
+          <label>Estado</label>
+          <select id="fleidos">
+            <option value="todos">Todos</option>
+            <option value="noleidos">No leídos</option>
+            <option value="leidos">Leídos</option>
+          </select>
+        </div>
+        <div class="fg">
+          <label>Cantidad</label>
+          <select id="fcantidad">
+            <option value="10">10 correos</option>
+            <option value="25" selected>25 correos</option>
+            <option value="50">50 correos</option>
+            <option value="100">100 correos</option>
+          </select>
+        </div>
+        <button class="btn-buscar" id="btnBuscar" onclick="buscar()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          Buscar correos
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div id="results"></div>
+
+</div>
+
+<div class="footer">IIB Consultoría Empresarial &middot; Gmail Monitor &middot; 2026</div>
+
+<script>
+let nivelAcceso = null;
+
+const NGROK_URL = 'https://revise-unpleased-sacrifice.ngrok-free.dev';
+const BASE_URL = NGROK_URL !== 'https://revise-unpleased-sacrifice.ngrok-free.dev'
+  ? NGROK_URL
+  : 'http://localhost:5678';
+
+const WEBHOOK          = BASE_URL + '/webhook/iib-gmail-monitor';
+const WEBHOOK_CLIENTES = BASE_URL + '/webhook/iib-listar-clientes';
+const WEBHOOK_ADJUNTO  = BASE_URL + '/webhook/iib-descargar-adjunto';
+
+let CLIENTES = [
+  { id: 1, nombre: 'Con Sentido Coaching', email: 'lauvalencia@higgo.com.co', carpeta: 'C:\\Users\\SANTI\\Downloads\\Clientes\\Con Sentido Coaching', iniciales: 'CS' }
+];
+
+let seleccionados = new Set();
+let expandidos = {};
+let correosActuales = [];
+
+(function() {
+  const hoy = new Date();
+  const primero = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+  const toISO = d => d.toISOString().split('T')[0];
+  document.getElementById('fdesde').value = toISO(primero);
+  document.getElementById('fhasta').value = toISO(hoy);
+  document.getElementById('inputCodigo').focus();
+})();
+
+const ES_MOVIL = /Android|iPhone|iPad|iPod|Mobile/i
+  .test(navigator.userAgent) || window.innerWidth <= 768;
+if (ES_MOVIL) document.body.classList.add('es-movil');
+
+function renderChips() {
+  document.getElementById('chips-container').innerHTML = CLIENTES.map(c => `
+    <div class="chip" id="chip${c.id}" onclick="toggleChip(${c.id})">
+      <div class="chip-av">${c.iniciales}</div>
+      <div style="flex:1">
+        <div class="chip-nm">${esc(c.nombre)}</div>
+        <div class="chip-em">${esc(c.email)}</div>
+      </div>
+      <div class="chip-check" id="check${c.id}">✓</div>
+    </div>
+  `).join('');
+}
+
+async function loadClientes() {
+  try {
+    const r = await fetch(WEBHOOK_CLIENTES, { signal: AbortSignal.timeout(5000) });
+    const data = await r.json();
+    if (data.success && data.clientes && data.clientes.length > 0) CLIENTES = data.clientes;
+  } catch(e) {}
+  seleccionados = new Set(CLIENTES.map(c => c.id));
+  renderChips();
+}
+
+async function checkStatus() {
+  try {
+    await fetch(BASE_URL + '/healthz', { mode: 'no-cors' });
+    document.getElementById('statusDot').className = 'dot';
+    document.getElementById('statusLbl').textContent = 'n8n conectado';
+  } catch(e) {
+    document.getElementById('statusDot').className = 'dot red';
+    document.getElementById('statusLbl').textContent = 'Sin conexión';
+  }
+}
+
+function toggleChip(id) {
+  const chip = document.getElementById('chip' + id);
+  const check = document.getElementById('check' + id);
+  if (seleccionados.has(id)) {
+    seleccionados.delete(id);
+    chip.classList.add('unselected');
+    check.textContent = '○';
+  } else {
+    seleccionados.add(id);
+    chip.classList.remove('unselected');
+    check.textContent = '✓';
+  }
+}
+
+function fmt(iso) {
+  const d = new Date(iso);
+  const m = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+  return `${d.getDate()} ${m[d.getMonth()]} ${d.getFullYear()} · ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+}
+
+function esc(s) {
+  return s ? String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') : '';
+}
+
+async function buscar() {
+  const _fab = document.getElementById('btn-flotante-descarga');
+  if (_fab) _fab.remove();
+  if (seleccionados.size === 0) {
+    document.getElementById('results').innerHTML = `
+      <div class="card"><div class="card-inner">
+        <div class="empty"><div class="empty-icon">👤</div><p>Selecciona al menos un cliente para buscar.</p></div>
+      </div></div>`;
+    return;
+  }
+
+  const btn = document.getElementById('btnBuscar');
+  btn.disabled = true;
+  btn.innerHTML = `<div class="spinner" style="width:13px;height:13px;border-width:2px;margin:0;flex-shrink:0"></div> Buscando...`;
+
+  const clientesSeleccionados = CLIENTES.filter(c => seleccionados.has(c.id));
+
+  document.getElementById('results').innerHTML = `
+    <div class="card"><div class="card-inner">
+      <div class="loading">
+        <div class="spinner"></div>
+        <div class="loading-txt">Consultando correos en Gmail...</div>
+        <div class="loading-sub">Esto puede tomar unos segundos</div>
+      </div>
+    </div></div>`;
+
+  const payload = {
+    clientes: clientesSeleccionados,
+    direccion: document.getElementById('fdireccion').value,
+    tipo: document.getElementById('ftipo').value,
+    desde: document.getElementById('fdesde').value,
+    hasta: document.getElementById('fhasta').value,
+    estadoLectura: document.getElementById('fleidos').value,
+    cantidad: parseInt(document.getElementById('fcantidad').value)
+  };
+
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 180000);
+    const response = await fetch(WEBHOOK, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+      signal: controller.signal
+    });
+    clearTimeout(timeoutId);
+    if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
+    const data = await response.json();
+    btn.disabled = false;
+    btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg> Buscar correos`;
+    if (data.success && data.correos) {
+      render(data.correos);
+    } else {
+      document.getElementById('results').innerHTML = `<div class="card"><div class="card-inner"><div class="error-box">⚠️ Respuesta inesperada del servidor.</div></div></div>`;
+    }
+  } catch(err) {
+    btn.disabled = false;
+    btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg> Buscar correos`;
+    document.getElementById('results').innerHTML = `
+      <div class="card"><div class="card-inner">
+        <div class="error-box">
+          ❌ No se pudo conectar con n8n.<br><br>
+          <strong>Verifica:</strong><br>
+          • n8n corriendo en Docker (puerto 5678)<br>
+          • Workflow "IIB - Monitorizar Gmail" publicado<br>
+          • ngrok activo (solo necesario desde fuera de tu red)<br><br>
+          <span style="color:var(--text-secondary);font-size:12px">Error: ${err.name === 'AbortError' ? 'Tiempo de espera agotado (180s). Prueba con menos correos.' : err.message}</span>
+        </div>
+      </div></div>`;
+  }
+}
+
+function toggleMail(id) {
+  expandidos[id] = !expandidos[id];
+  const body = document.getElementById('body-' + id);
+  const chev = document.getElementById('chev-' + id);
+  if (body) body.style.display = expandidos[id] ? 'block' : 'none';
+  if (chev) chev.className = 'chevron' + (expandidos[id] ? ' open' : '');
+}
+
+function render(correos) {
+  if (!correos || correos.length === 0) {
+    document.getElementById('results').innerHTML = `
+      <div class="card"><div class="card-inner">
+        <div class="empty"><div class="empty-icon">📭</div><p>No se encontraron correos con los filtros seleccionados.</p></div>
+      </div></div>`;
+    return;
+  }
+
+  correosActuales = correos;
+  correos.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+
+  const tadj = correos.filter(c => c.tiene_adjuntos).length;
+  const tnoread = correos.filter(c => !c.leido).length;
+
+  const _fabAnterior = document.getElementById('btn-flotante-descarga');
+  if (_fabAnterior) _fabAnterior.remove();
+  if (ES_MOVIL && nivelAcceso === 'admin' && tadj > 0) {
+    const fab = document.createElement('button');
+    fab.id = 'btn-flotante-descarga';
+    fab.className = 'btn-flotante-descarga';
+    fab.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Descargar (${tadj})`;
+    fab.onclick = abrirModalDescarga;
+    document.body.appendChild(fab);
+  }
+
+  let h = `
+    <div class="stats">
+      <div class="stat"><div class="stat-n">${correos.length}</div><div class="stat-l">Correos</div></div>
+      <div class="stat"><div class="stat-n">${tnoread}</div><div class="stat-l">No leídos</div></div>
+      <div class="stat"><div class="stat-n">${tadj}</div><div class="stat-l">Con adjuntos</div></div>
+    </div>
+    <div class="rh">
+      <div class="rh-txt">${correos.length} correo${correos.length !== 1 ? 's' : ''} encontrado${correos.length !== 1 ? 's' : ''}</div>
+      ${tadj > 0 && nivelAcceso === 'admin' && !ES_MOVIL ? `
+        <button class="btn-dl-all" onclick="abrirModalDescarga()">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Descargar adjuntos
+        </button>` : ''}
+    </div>`;
+
+  correos.forEach(c => {
+    const id = c.correo_id || (Date.now() + Math.random()).toString(36);
+    h += `
+      <div class="mcard">
+        <div class="mhead" onclick="toggleMail('${id}')">
+          <div style="flex:1;min-width:0">
+            <div class="msubj">${esc(c.asunto || 'Sin asunto')}</div>
+            <div class="mrow">
+              <span class="mdate">${fmt(c.fecha)}</span>
+              <span class="badge ${c.tipo === 'new' ? 'bnew' : 'brep'}">${c.tipo === 'new' ? 'Nuevo' : 'Respuesta'}</span>
+              ${!c.leido ? '<span class="badge bnoread">No leído</span>' : ''}
+              ${c.tiene_adjuntos ? '<span class="badge badj">📎 Adjuntos</span>' : ''}
+            </div>
+          </div>
+          <span class="chevron" id="chev-${id}">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </span>
+        </div>
+        <div id="body-${id}" style="display:none">
+          <div class="mbody">
+            <p style="font-size:12px;color:var(--text-tertiary);font-style:italic">
+              ${c.tiene_adjuntos ? '📎 Este correo tiene adjuntos. Usa el botón "Descargar adjuntos" para obtenerlos.' : 'Sin contenido adicional disponible.'}
+            </p>
+          </div>
+        </div>
+      </div>`;
+  });
+
+  document.getElementById('results').innerHTML = h;
+}
+
+function fmtModal(iso) {
+  const d = new Date(iso);
+  const p = n => String(n).padStart(2,'0');
+  return `${p(d.getDate())}/${p(d.getMonth()+1)}/${d.getFullYear()} · ${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+
+function abrirModalDescarga() {
+  if (nivelAcceso !== 'admin') return;
+  const conAdj = correosActuales.filter(c => c.tiene_adjuntos);
+  const filas = conAdj.map((c, i) => {
+    const s = c.asunto || 'Sin asunto';
+    const asuntoCorto = s.length > 45 ? s.substring(0, 45) + '…' : s;
+    return `
+      <div class="modal-row" onclick="toggleModalCheck('mck-${i}')">
+        <input type="checkbox" class="modal-checkbox mck-item" id="mck-${i}"
+          onclick="event.stopPropagation();actualizarContadorModal()">
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13px;font-weight:600;color:var(--text-primary);line-height:1.3">${esc(asuntoCorto)}</div>
+          <div style="font-size:11px;color:var(--text-tertiary);margin-top:3px">${fmtModal(c.fecha)}</div>
+        </div>
+        <span class="badge badj" style="flex-shrink:0">📎 Adjuntos</span>
+      </div>`;
+  }).join('');
+
+  document.body.insertAdjacentHTML('beforeend', `
+    <div class="modal-overlay" id="modal-overlay" onclick="cerrarModal()">
+      <div class="modal-container" onclick="event.stopPropagation()">
+        <div class="modal-header">
+          <div class="modal-title">Descargar adjuntos</div>
+          <div class="modal-subtitle">Selecciona los correos cuyos adjuntos quieres descargar</div>
+          <button class="modal-close" onclick="cerrarModal()">✕</button>
+        </div>
+        <div class="modal-body">
+          <div class="modal-row modal-row-all" onclick="toggleSeleccionTodos()">
+            <input type="checkbox" class="modal-checkbox" id="mck-all"
+              onclick="event.stopPropagation();toggleSeleccionTodos(true)">
+            <div style="font-size:13px;font-weight:600;color:var(--text-primary)">Seleccionar todos</div>
+            <span style="font-size:11px;color:var(--text-tertiary);margin-left:auto">${conAdj.length} correos</span>
+          </div>
+          ${filas}
+        </div>
+        <div class="modal-footer">
+          <div class="modal-counter" id="modal-counter">0 seleccionados</div>
+          <div class="modal-actions">
+            <div id="modal-progress" class="progress-bar" style="display:none"></div>
+            <div class="modal-btns">
+              <button class="btn-modal-secondary" id="btn-cancelar" onclick="cerrarModal()">Cancelar</button>
+              <button class="btn-modal-primary" id="btn-descargar" onclick="descargarSeleccionados()" disabled>
+                Descargar
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>`);
+
+  document.querySelectorAll('.mck-item').forEach(cb => { cb.checked = true; });
+  document.getElementById('mck-all').checked = true;
+  actualizarContadorModal();
+}
+
+function cerrarModal() {
+  const el = document.getElementById('modal-overlay');
+  if (el) el.remove();
+}
+
+function toggleModalCheck(id) {
+  const cb = document.getElementById(id);
+  if (cb) { cb.checked = !cb.checked; actualizarContadorModal(); }
+}
+
+function toggleSeleccionTodos(fromCheckbox) {
+  const allCb = document.getElementById('mck-all');
+  if (!fromCheckbox) allCb.checked = !allCb.checked;
+  document.querySelectorAll('.mck-item').forEach(cb => { cb.checked = allCb.checked; });
+  actualizarContadorModal();
+}
+
+function actualizarContadorModal() {
+  const items = document.querySelectorAll('.mck-item');
+  const n = [...items].filter(cb => cb.checked).length;
+  const counter = document.getElementById('modal-counter');
+  const btnDl = document.getElementById('btn-descargar');
+  const allCb = document.getElementById('mck-all');
+  if (counter) {
+    counter.textContent = `${n} correo${n !== 1 ? 's' : ''} seleccionado${n !== 1 ? 's' : ''}`;
+    counter.className = 'modal-counter' + (n > 0 ? ' active' : '');
+  }
+  if (btnDl) btnDl.disabled = n === 0;
+  if (allCb) allCb.checked = n === items.length && items.length > 0;
+}
+
+function nombreArchivo(asunto, fecha, nombreCliente, archivoOriginal) {
+  const parte1 = (asunto || '')
+    .replace(/^(re:|rta:|fw:|fwd:)\s*/gi, '')
+    .toUpperCase().replace(/\s+/g, '_')
+    .replace(/[^A-Z0-9ÁÉÍÓÚÑ_-]/g, '').substring(0, 40);
+  const d = new Date(fecha);
+  const p = n => String(n).padStart(2, '0');
+  const parte2 = `${p(d.getDate())}-${p(d.getMonth()+1)}-${d.getFullYear()}`;
+  const parte3 = (nombreCliente || '').split(' ')
+    .map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join('')
+    .replace(/[^A-Za-zÁÉÍÓÚÑáéíóúñ]/g, '');
+  const parte4 = (archivoOriginal || 'archivo').replace(/[\\/:*?"<>|]/g, '_');
+  return `${parte1}_${parte2}_${parte3}_${parte4}`;
+}
+
+async function descargarSeleccionados() {
+  const conAdj = correosActuales.filter(c => c.tiene_adjuntos);
+  const items = document.querySelectorAll('.mck-item');
+  const selec = [...items].map((cb, i) => cb.checked ? conAdj[i] : null).filter(Boolean);
+  if (selec.length === 0) return;
+
+  const btnDl = document.getElementById('btn-descargar');
+  const btnCancel = document.getElementById('btn-cancelar');
+  const progressEl = document.getElementById('modal-progress');
+
+  btnDl.disabled = true; btnDl.textContent = 'Descargando...';
+  if (btnCancel) btnCancel.disabled = true;
+  if (progressEl) progressEl.style.display = 'block';
+
+  let descargados = 0, fallidos = 0;
+
+  for (let i = 0; i < selec.length; i++) {
+    const correo = selec[i];
+    if (progressEl) progressEl.textContent = `Procesando ${i+1} de ${selec.length}: ${(correo.asunto || '').substring(0, 35)}...`;
+    try {
+      const ctrl = new AbortController();
+      const tid = setTimeout(() => ctrl.abort(), 30000);
+      const resp = await fetch(WEBHOOK_ADJUNTO, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          correo_id: correo.correo_id, cliente_email: correo.cliente_email,
+          cliente_nombre: correo.cliente_nombre, asunto: correo.asunto, fecha: correo.fecha
+        }), signal: ctrl.signal
+      });
+      clearTimeout(tid);
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      const data = await resp.json();
+      if (data.success && data.adjuntos && data.adjuntos.length > 0) {
+        for (const adj of data.adjuntos) {
+          const nombre = nombreArchivo(correo.asunto, correo.fecha, correo.cliente_nombre, adj.nombre_original);
+          const bytes = atob(adj.contenido_base64);
+          const arr = new Uint8Array(bytes.length);
+          for (let j = 0; j < bytes.length; j++) arr[j] = bytes.charCodeAt(j);
+          const blob = new Blob([arr], { type: adj.mimeType || 'application/octet-stream' });
+          const a = document.createElement('a');
+          a.href = URL.createObjectURL(blob); a.download = nombre;
+          document.body.appendChild(a); a.click();
+          document.body.removeChild(a); URL.revokeObjectURL(a.href);
+          await new Promise(r => setTimeout(r, 500));
+        }
+        descargados++;
+      }
+    } catch(err) {
+      fallidos++;
+      await new Promise(r => setTimeout(r, 800));
+    }
+  }
+
+  if (progressEl) {
+    progressEl.style.background = fallidos === 0 ? 'var(--green-bg)' : 'var(--amber-bg)';
+    progressEl.style.color = fallidos === 0 ? 'var(--green-text)' : 'var(--amber-text)';
+    progressEl.style.border = fallidos === 0 ? '1px solid rgba(52,199,89,0.2)' : '1px solid rgba(245,192,0,0.2)';
+    progressEl.textContent = fallidos === 0
+      ? `✅ ${descargados} correo${descargados !== 1 ? 's' : ''} descargado${descargados !== 1 ? 's' : ''} · Archivos en tu carpeta IIB_GMAIL`
+      : `✅ ${descargados} descargado${descargados !== 1 ? 's' : ''} · ⚠️ ${fallidos} con error`;
+  }
+  if (btnDl) {
+    btnDl.textContent = '✅ Completado';
+    setTimeout(() => {
+      btnDl.textContent = 'Descargar'; btnDl.disabled = false;
+      if (btnCancel) btnCancel.disabled = false;
+    }, 2500);
+  }
+}
+
+function guardarArchivo(nombre, carpeta) {
+  alert(`✅ Archivo: ${nombre}\n📂 ${carpeta}`);
+}
+
+function validarLogin() {
+  const codigo = document.getElementById('inputCodigo').value;
+  const errorEl = document.getElementById('errorLogin');
+  if (codigo === 'IIB2026*') {
+    nivelAcceso = 'estandar';
+  } else if (codigo === 'IIB@Admin2026#') {
+    nivelAcceso = 'admin';
+  } else {
+    errorEl.style.display = 'block';
+    document.getElementById('inputCodigo').value = '';
+    document.getElementById('inputCodigo').focus();
+    setTimeout(() => { errorEl.style.display = 'none'; }, 3000);
+    return;
+  }
+  document.getElementById('login-overlay').style.display = 'none';
+  const nivelPill = document.getElementById('nivelPill');
+  nivelPill.style.display = 'flex';
+  document.getElementById('nivelLbl').textContent = nivelAcceso === 'admin' ? '⚙️ Admin' : '👤 Usuario';
+  loadClientes();
+  checkStatus();
+}
+</script>
+</body>
+</html>
