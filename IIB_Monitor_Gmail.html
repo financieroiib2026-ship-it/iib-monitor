@@ -723,14 +723,28 @@
 <script>
 let nivelAcceso = null;
 
-const NGROK_URL = 'https://revise-unpleased-sacrifice.ngrok-free.dev';
-const BASE_URL = NGROK_URL !== 'https://revise-unpleased-sacrifice.ngrok-free.dev'
-  ? NGROK_URL
-  : 'http://localhost:5678';
+let BASE_URL = 'https://revise-unpleased-sacrifice.ngrok-free.dev';
 
-const WEBHOOK          = BASE_URL + '/webhook/iib-gmail-monitor';
-const WEBHOOK_CLIENTES = BASE_URL + '/webhook/iib-listar-clientes';
-const WEBHOOK_ADJUNTO  = BASE_URL + '/webhook/iib-descargar-adjunto';
+let WEBHOOK          = BASE_URL + '/webhook/iib-gmail-monitor';
+let WEBHOOK_CLIENTES = BASE_URL + '/webhook/iib-listar-clientes';
+let WEBHOOK_ADJUNTO  = BASE_URL + '/webhook/iib-descargar-adjunto';
+let WEBHOOK_AUTH     = BASE_URL + '/webhook/iib-validar-acceso';
+
+async function resolverBaseURL() {
+  try {
+    const r = await fetch('http://localhost:5678/webhook/iib-listar-clientes',
+      { signal: AbortSignal.timeout(5000) });
+    if (!r.ok) return;
+    const data = await r.json();
+    if (data.ngrok_url && data.ngrok_url.startsWith('http')) {
+      BASE_URL         = data.ngrok_url;
+      WEBHOOK          = BASE_URL + '/webhook/iib-gmail-monitor';
+      WEBHOOK_CLIENTES = BASE_URL + '/webhook/iib-listar-clientes';
+      WEBHOOK_ADJUNTO  = BASE_URL + '/webhook/iib-descargar-adjunto';
+      WEBHOOK_AUTH     = BASE_URL + '/webhook/iib-validar-acceso';
+    }
+  } catch(e) {}
+}
 
 let CLIENTES = [
   { id: 1, nombre: 'Con Sentido Coaching', email: 'lauvalencia@higgo.com.co', carpeta: 'C:\\Users\\SANTI\\Downloads\\Clientes\\Con Sentido Coaching', iniciales: 'CS' }
@@ -740,7 +754,8 @@ let seleccionados = new Set();
 let expandidos = {};
 let correosActuales = [];
 
-(function() {
+(async function() {
+  await resolverBaseURL();
   const hoy = new Date();
   const primero = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
   const toISO = d => d.toISOString().split('T')[0];
@@ -1144,26 +1159,61 @@ function guardarArchivo(nombre, carpeta) {
   alert(`✅ Archivo: ${nombre}\n📂 ${carpeta}`);
 }
 
-function validarLogin() {
-  const codigo = document.getElementById('inputCodigo').value;
+async function validarLogin() {
+  const codigo = document.getElementById('inputCodigo').value.trim();
   const errorEl = document.getElementById('errorLogin');
-  if (codigo === 'IIB2026*') {
-    nivelAcceso = 'estandar';
-  } else if (codigo === 'IIB@Admin2026#') {
-    nivelAcceso = 'admin';
-  } else {
+  const btn = document.querySelector('.btn-login');
+
+  if (!codigo) return;
+
+  btn.textContent = 'Verificando...';
+  btn.disabled = true;
+  errorEl.style.display = 'none';
+
+  try {
+    const resp = await fetch(WEBHOOK_AUTH, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ codigo: codigo }),
+      signal: AbortSignal.timeout(10000)
+    });
+
+    if (!resp.ok) throw new Error('Error del servidor');
+
+    const data = await resp.json();
+
+    if (data.success && data.nivel) {
+      nivelAcceso = data.nivel;
+      document.getElementById('login-overlay').style.display = 'none';
+      const nivelPill = document.getElementById('nivelPill');
+      nivelPill.style.display = 'flex';
+      document.getElementById('nivelLbl').textContent =
+        nivelAcceso === 'admin' ? '⚙️ Admin' : '👤 Usuario';
+      loadClientes();
+      checkStatus();
+    } else {
+      errorEl.textContent = 'Código incorrecto. Intenta de nuevo.';
+      errorEl.style.display = 'block';
+      document.getElementById('inputCodigo').value = '';
+      document.getElementById('inputCodigo').focus();
+      setTimeout(() => { errorEl.style.display = 'none'; }, 3000);
+    }
+
+  } catch(err) {
+    const esTimeout = err.name === 'TimeoutError' || err.name === 'AbortError';
+    errorEl.textContent = esTimeout
+      ? 'Tiempo de espera agotado. Verifica tu conexión.'
+      : 'No se pudo conectar con el servidor.';
     errorEl.style.display = 'block';
-    document.getElementById('inputCodigo').value = '';
-    document.getElementById('inputCodigo').focus();
-    setTimeout(() => { errorEl.style.display = 'none'; }, 3000);
-    return;
+    setTimeout(() => {
+      errorEl.style.display = 'none';
+      errorEl.textContent = 'Código incorrecto. Intenta de nuevo.';
+    }, 4000);
+
+  } finally {
+    btn.textContent = 'Ingresar';
+    btn.disabled = false;
   }
-  document.getElementById('login-overlay').style.display = 'none';
-  const nivelPill = document.getElementById('nivelPill');
-  nivelPill.style.display = 'flex';
-  document.getElementById('nivelLbl').textContent = nivelAcceso === 'admin' ? '⚙️ Admin' : '👤 Usuario';
-  loadClientes();
-  checkStatus();
 }
 </script>
 </body>
