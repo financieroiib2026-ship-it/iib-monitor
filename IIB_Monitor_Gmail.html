@@ -732,7 +732,12 @@ let WEBHOOK_AUTH     = BASE_URL + '/webhook/iib-validar-acceso';
 
 async function resolverBaseURL() {
   if (window.location.protocol === 'file:') {
-    return; // Archivo local — BASE_URL permanece en localhost:5678
+    BASE_URL         = 'http://localhost:5678';
+    WEBHOOK          = BASE_URL + '/webhook/iib-gmail-monitor';
+    WEBHOOK_CLIENTES = BASE_URL + '/webhook/iib-listar-clientes';
+    WEBHOOK_ADJUNTO  = BASE_URL + '/webhook/iib-descargar-adjunto';
+    WEBHOOK_AUTH     = BASE_URL + '/webhook/iib-validar-acceso';
+    return;
   }
   try {
     const r = await fetch('http://localhost:5678/webhook/iib-listar-clientes',
@@ -746,7 +751,7 @@ async function resolverBaseURL() {
       WEBHOOK_ADJUNTO  = BASE_URL + '/webhook/iib-descargar-adjunto';
       WEBHOOK_AUTH     = BASE_URL + '/webhook/iib-validar-acceso';
     }
-  } catch(e) {}
+  } catch(e) { console.error('resolverBaseURL:', e); }
 }
 
 let CLIENTES = [];
@@ -785,9 +790,16 @@ function renderChips() {
 async function loadClientes() {
   try {
     const r = await fetch(WEBHOOK_CLIENTES, { signal: AbortSignal.timeout(5000) });
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
     const data = await r.json();
-    if (data.success && data.clientes && data.clientes.length > 0) CLIENTES = data.clientes;
-  } catch(e) {}
+    if (data.success && data.clientes && data.clientes.length > 0) {
+      CLIENTES = data.clientes;
+    }
+  } catch(e) {
+    console.error('loadClientes error:', e);
+    const el = document.getElementById('chips-container');
+    if (el) el.innerHTML = '<p style="color:#e74c3c;padding:12px;font-size:13px;">No se pudo cargar la lista de clientes. Verifica que n8n esté corriendo en localhost:5678.</p>';
+  }
   seleccionados = new Set(CLIENTES.map(c => c.id));
   renderChips();
 }
