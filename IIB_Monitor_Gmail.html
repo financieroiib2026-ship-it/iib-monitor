@@ -723,7 +723,7 @@
 <script>
 let nivelAcceso = null;
 
-let BASE_URL = 'https://revise-unpleased-sacrifice.ngrok-free.dev';
+let BASE_URL = 'http://localhost:5678';
 
 let WEBHOOK          = BASE_URL + '/webhook/iib-gmail-monitor';
 let WEBHOOK_CLIENTES = BASE_URL + '/webhook/iib-listar-clientes';
@@ -731,6 +731,9 @@ let WEBHOOK_ADJUNTO  = BASE_URL + '/webhook/iib-descargar-adjunto';
 let WEBHOOK_AUTH     = BASE_URL + '/webhook/iib-validar-acceso';
 
 async function resolverBaseURL() {
+  if (window.location.protocol === 'file:') {
+    return; // Archivo local — BASE_URL permanece en localhost:5678
+  }
   try {
     const r = await fetch('http://localhost:5678/webhook/iib-listar-clientes',
       { signal: AbortSignal.timeout(5000) });
@@ -746,9 +749,7 @@ async function resolverBaseURL() {
   } catch(e) {}
 }
 
-let CLIENTES = [
-  { id: 1, nombre: 'Con Sentido Coaching', email: 'lauvalencia@higgo.com.co', carpeta: 'C:\\Users\\SANTI\\Downloads\\Clientes\\Con Sentido Coaching', iniciales: 'CS' }
-];
+let CLIENTES = [];
 
 let seleccionados = new Set();
 let expandidos = {};
@@ -1189,7 +1190,7 @@ async function validarLogin() {
       nivelPill.style.display = 'flex';
       document.getElementById('nivelLbl').textContent =
         nivelAcceso === 'admin' ? '⚙️ Admin' : '👤 Usuario';
-      loadClientes();
+      await loadClientes();
       checkStatus();
     } else {
       errorEl.textContent = 'Código incorrecto. Intenta de nuevo.';
